@@ -1,3 +1,4 @@
+import os
 import plotly.express as px
 import dash
 import dash_html_components as html
@@ -10,6 +11,7 @@ df = get_covid19_data()
 geojson = get_geojson()
 
 app = dash.Dash(__name__)
+server = app.server
 app.layout = html.Div([
     html.Div(
         html.H1('COVID-19 Dashboard',
