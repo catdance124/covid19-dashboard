@@ -16,6 +16,15 @@ def get_covid19_npatients():
     df = df.dropna()
     return df
 
+def get_covid19_ndeaths():
+    df_npatients = get_covid19_npatients()
+    url = "https://opendata.corona.go.jp/api/Covid19JapanNdeaths"
+    response = requests.get(url)
+    df_ndeaths = pd.DataFrame(response.json()['itemList'])
+    merged = pd.merge(df_npatients.groupby(by=['date']).sum(), df_ndeaths, on='date')
+    merged.drop('npatients_today', axis=1, inplace=True)
+    return pd.melt(merged, id_vars=['date'])
+
 def get_geojson():
     # url = "https://raw.githubusercontent.com/dataofjapan/land/master/japan.geojson"
     url = "japan.geojson"

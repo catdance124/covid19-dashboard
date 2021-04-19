@@ -4,11 +4,12 @@ import dash
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
-from func import get_covid19_npatients, get_geojson
+from func import get_covid19_npatients, get_geojson, get_covid19_ndeaths
 
 
 df = get_covid19_npatients()
 geojson = get_geojson()
+df_ndeaths = get_covid19_ndeaths()
 
 app = dash.Dash(__name__)
 server = app.server
@@ -31,6 +32,9 @@ app.layout = html.Div([
     ),
     dcc.Loading(
         dcc.Graph(id='prefecture_npatients_transition')
+    ),
+    dcc.Graph(id='ndeaths_transition',
+        figure=px.bar(df_ndeaths, x="date", y="value", color="variable", barmode="overlay", log_y=True)
     )
 ])
 
