@@ -4,7 +4,7 @@ import geopandas as gpd
 import json
 
 
-def get_covid19_data():
+def get_covid19_npatients():
     url = "https://opendata.corona.go.jp/api/Covid19JapanAll"
     response = requests.get(url)
     df = pd.DataFrame(response.json()['itemList'])
@@ -13,7 +13,7 @@ def get_covid19_data():
     ## calc npatients per day
     for name in df['name_jp'].unique():
         df.loc[df['name_jp']==name, ['npatients_today']] = df[df['name_jp']==name]['npatients'].diff(-1)
-    df.fillna(0)
+    df = df.dropna()
     return df
 
 def get_geojson():
