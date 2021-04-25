@@ -3,6 +3,7 @@ import plotly.express as px
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 from func import get_covid19_npatients, get_geojson, get_covid19_ndeaths
 
@@ -11,28 +12,36 @@ df = get_covid19_npatients()
 geojson = get_geojson()
 df_ndeaths = get_covid19_ndeaths()
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 app.layout = html.Div([
     html.Div(
         html.H1('COVID-19 Dashboard',
                 style={'textAlign': 'center'})
     ),
-    dcc.Dropdown(
-        id='selectdate',
-        options=[{'label': i, 'value': i}
-                 for i in df['date'].unique()],
-        placeholder="日付を選択",
-        value=df['date'].unique()[0]
-    ),
-    dcc.Loading(
-        dcc.Graph(id='japanmap',
-                clickData={'points': [{'curveNumber': 0, 'pointNumber': 12, 'pointIndex': 12, 'location': '東京都', 'z': 729}]}
-        )
-    ),
-    dcc.Loading(
-        dcc.Graph(id='prefecture_npatients_transition')
-    ),
+    dbc.Row([
+        dbc.Col(
+            html.Div([
+                dcc.Dropdown(
+                    id='selectdate',
+                    options=[{'label': i, 'value': i}
+                            for i in df['date'].unique()],
+                    placeholder="日付を選択",
+                    value=df['date'].unique()[0]
+                ),
+                dcc.Loading(
+                    dcc.Graph(id='japanmap',
+                            clickData={'points': [{'curveNumber': 0, 'pointNumber': 12, 'pointIndex': 12, 'location': '東京都', 'z': 729}]}
+                    )
+                )
+            ]), md=5
+        ),
+        dbc.Col(
+            dcc.Loading(
+                dcc.Graph(id='prefecture_npatients_transition')
+            ), md=7
+        ),
+    ]),
     dcc.Graph(id='ndeaths_transition',
         figure=px.bar(df_ndeaths, x="date", y="value", color="variable", barmode="overlay", log_y=True)
     )
@@ -51,7 +60,7 @@ def update_japanmap(selected_date):
                                featureidkey='properties.nam_ja',
                                color_continuous_scale="Viridis",
                                mapbox_style="carto-positron",
-                               zoom=5,
+                               zoom=3.5,
                                center={"lat": 36, "lon": 138},
                                opacity=0.5,
                                labels={"value": "人数"}
