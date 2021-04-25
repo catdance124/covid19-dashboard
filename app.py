@@ -23,7 +23,7 @@ app.layout = html.Div([
         options=[{'label': i, 'value': i}
                  for i in df['date'].unique()],
         placeholder="日付を選択",
-        value="2021-04-15"
+        value=df['date'].unique()[0]
     ),
     dcc.Loading(
         dcc.Graph(id='japanmap',
