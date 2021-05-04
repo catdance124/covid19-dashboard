@@ -58,7 +58,7 @@ def update_japanmap(selected_date):
                                locations=selectdf['name_jp'],
                                color=selectdf['npatients_today'],
                                featureidkey='properties.nam_ja',
-                               color_continuous_scale="Viridis",
+                               color_continuous_scale="Inferno",
                                mapbox_style="carto-positron",
                                zoom=3.5,
                                center={"lat": 36, "lon": 138},
