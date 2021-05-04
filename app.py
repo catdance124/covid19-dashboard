@@ -1,4 +1,4 @@
-import os
+import os, datetime
 import plotly.express as px
 import dash
 import dash_daq as daq
@@ -29,12 +29,13 @@ app.layout = html.Div([
                     label=f'{df["date"].unique()[0]}時点の累計陽性者数を表示',
                     labelPosition='left'
                 ),
-                dcc.Dropdown(
+                dcc.DatePickerSingle(
                     id='selectdate',
-                    options=[{'label': i, 'value': i}
-                            for i in df['date'].unique()],
-                    placeholder="日付を選択",
-                    value=df['date'].unique()[0],
+                    min_date_allowed=datetime.datetime.strptime(df['date'].unique()[-1], '%Y-%m-%d'),
+                    max_date_allowed=datetime.datetime.strptime(df['date'].unique()[0], '%Y-%m-%d'),
+                    initial_visible_month=datetime.datetime.strptime(df['date'].unique()[0], '%Y-%m-%d'),
+                    date=df['date'].unique()[0],
+                    display_format='Y/M/D',
                     disabled=True
                 ),
                 dcc.Loading(
@@ -66,7 +67,7 @@ def update_selectdate_disabled(toggle_cumulative):
 
 @app.callback(
     Output('japanmap', 'figure'),
-    [Input('selectdate', 'value'),
+    [Input('selectdate', 'date'),
     Input('toggle-switch', 'value')])
 def update_japanmap(selected_date, toggle_cumulative):
     selectdf = df[df['date'] == selected_date]
