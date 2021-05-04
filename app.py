@@ -1,6 +1,7 @@
 import os
 import plotly.express as px
 import dash
+import dash_daq as daq
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
@@ -22,23 +23,32 @@ app.layout = html.Div([
     dbc.Row([
         dbc.Col(
             html.Div([
+                daq.ToggleSwitch(
+                    id='toggle-switch',
+                    value=False,
+                    label=f'{df["date"].unique()[0]}時点の累計陽性者数を表示',
+                    labelPosition='left'
+                ),
                 dcc.Dropdown(
                     id='selectdate',
                     options=[{'label': i, 'value': i}
                             for i in df['date'].unique()],
                     placeholder="日付を選択",
-                    value=df['date'].unique()[0]
+                    value=df['date'].unique()[0],
+                    disabled=True
                 ),
                 dcc.Loading(
                     dcc.Graph(id='japanmap',
                             clickData={'points': [{'curveNumber': 0, 'pointNumber': 12, 'pointIndex': 12, 'location': '東京都', 'z': 729}]}
-                    )
+                    ),
+                    type="graph"
                 )
             ]), md=5
         ),
         dbc.Col(
             dcc.Loading(
-                dcc.Graph(id='prefecture_npatients_transition')
+                dcc.Graph(id='prefecture_npatients_transition'),
+                type="graph"
             ), md=7
         ),
     ]),
@@ -49,14 +59,21 @@ app.layout = html.Div([
 
 
 @app.callback(
-    dash.dependencies.Output('japanmap', 'figure'),
-    [dash.dependencies.Input('selectdate', 'value')])
-def update_japanmap(selected_date):
+    Output("selectdate", "disabled"),
+    [Input("toggle-switch", "value")])
+def update_selectdate_disabled(toggle_cumulative):
+    return toggle_cumulative
+
+@app.callback(
+    Output('japanmap', 'figure'),
+    [Input('selectdate', 'value'),
+    Input('toggle-switch', 'value')])
+def update_japanmap(selected_date, toggle_cumulative):
     selectdf = df[df['date'] == selected_date]
     fig = px.choropleth_mapbox(selectdf,
                                geojson=geojson,
                                locations=selectdf['name_jp'],
-                               color=selectdf['npatients_today'],
+                               color=selectdf['npatients'] if toggle_cumulative else selectdf['npatients_today'],
                                featureidkey='properties.nam_ja',
                                color_continuous_scale="Inferno",
                                mapbox_style="carto-positron",
@@ -71,7 +88,7 @@ def update_japanmap(selected_date):
 
 @app.callback(
     Output('prefecture_npatients_transition', 'figure'),
-    Input('japanmap', 'clickData'))
+    [Input('japanmap', 'clickData')])
 def draw_prefecture_npatients_transition_graph(clickData):
     if clickData is None:
         return dash.no_update
