@@ -1,5 +1,6 @@
 import os, datetime
 import plotly.express as px
+from plotly.subplots import make_subplots
 import dash
 import dash_daq as daq
 import dash_html_components as html
@@ -113,13 +114,33 @@ def draw_prefecture_npatients_transition_graph(clickData):
 def draw_prefecture_npatients_ranking_graph(selected_date, toggle_cumulative):
     column_name = 'npatients' if toggle_cumulative else 'npatients_today'
     selectdf = df[df['date'] == selected_date].sort_values(column_name)
-    fig = px.bar(selectdf[-10:], x=column_name, y="name_jp", barmode="overlay", 
+    figure1= px.bar(selectdf[-10:], x=column_name, y="name_jp", barmode="overlay", 
                 text=column_name, color=column_name, orientation='h')
-    fig.update_traces(texttemplate="%{text:.2s}")
-    title = f'{df["date"].unique()[0]}時点の累計陽性患者数' if toggle_cumulative else f'{selected_date}の陽性患者数'
-    fig.update_layout(title_text=title, title_x=0.5,
-                margin={"r": 0, "t": 100, "l": 0, "b": 0}, height=400,
-                uniformtext_minsize=12)
+    figure2= px.bar(selectdf[-20:-10], x=column_name, y="name_jp", barmode="overlay", 
+                text=column_name, color=column_name, orientation='h')
+
+    # for subplots
+    figure1_traces = []
+    figure2_traces = []
+    for trace in range(len(figure1["data"])):
+        figure1_traces.append(figure1["data"][trace])
+    for trace in range(len(figure2["data"])):
+        figure2_traces.append(figure2["data"][trace])
+
+    #Create a 1x2 subplot
+    fig = make_subplots(rows=1, cols=2)
+
+    for traces in figure1_traces:
+        fig.append_trace(traces, row=1, col=1)
+    for traces in figure2_traces:
+        fig.append_trace(traces, row=1, col=2)
+    
+    fig.update_xaxes(range=[0, selectdf[column_name].max()])
+    fig.update_layout(
+            title_text=f'{df["date"].unique()[0]}時点の累計陽性患者数' if toggle_cumulative else f'{selected_date}の陽性患者数', 
+            title_x=0.5,
+            margin={"r": 0, "t": 100, "l": 0, "b": 0}, height=400,
+            uniformtext_minsize=12)
     return fig
 
 
