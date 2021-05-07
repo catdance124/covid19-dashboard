@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 import geopandas as gpd
+import numpy as np
 import json
 
 
@@ -10,11 +11,15 @@ def get_covid19_npatients():
     df = pd.DataFrame(response.json()['itemList'])
     ## edit
     df['npatients'] = df['npatients'].astype(int)
+    df.sort_values(['name_jp', 'date'], ascending=[True, False], inplace=True)
+    df.loc[df["npatients"] > df["npatients"].quantile(0.9999999), ['npatients']] = np.nan
+    df["npatients"].interpolate(inplace=True)
     ## calc npatients per day
     for name in df['name_jp'].unique():
         df.loc[df['name_jp']==name, ['npatients_today']] = df[df['name_jp']==name]['npatients'].diff(-1)
     df = df.dropna()
     return df
+
 
 def get_covid19_ndeaths():
     df_npatients = get_covid19_npatients()
