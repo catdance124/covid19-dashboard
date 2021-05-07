@@ -82,3 +82,5 @@ gunicorn
 PyYAML
 dash_bootstrap_components
 dash_daq
+scipy
+statsmodels

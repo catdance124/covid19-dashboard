@@ -1,4 +1,5 @@
 import os, datetime
+import pandas as pd
 import plotly.express as px
 from plotly.subplots import make_subplots
 import dash
@@ -101,6 +102,7 @@ def update_japanmap(selected_date, toggle_cumulative):
     [Input('japanmap', 'clickData'),
     Input('prefecture_npatients_ranking', 'clickData')])
 def draw_prefecture_npatients_transition_graph(clickData_map, clickData_bar):
+    # prepare data
     ctx = dash.callback_context
     if not ctx.triggered:
         prefecture = clickData_map['points'][0]['location']
@@ -110,8 +112,27 @@ def draw_prefecture_npatients_transition_graph(clickData_map, clickData_bar):
             prefecture = ctx.triggered[0]['value']['points'][0]['location']
         elif trigger_id == 'prefecture_npatients_ranking':
             prefecture = ctx.triggered[0]['value']['points'][0]['label']
+    df['date'] = pd.to_datetime(df['date'])
     selectdf = df[df['name_jp'] == prefecture]
-    fig = px.bar(selectdf, x="date", y="npatients")
+    # generate a regression line
+    selectdf['date_int'] = selectdf['date'].astype('int64') // 10**9
+    help_fig = px.scatter(selectdf, x='date_int', y='npatients', trendline="lowess")
+    selectdf['trend'] = help_fig["data"][1]['y']
+
+    # figure components
+    fig_components = []
+    fig_components.append(
+        px.bar(selectdf, x='date', y='npatients')
+    )
+    fig_components.append(
+        px.line(selectdf, x='date', y='trend')
+    )
+
+    # trace whole figure
+    fig = make_subplots()
+    for fig_component in fig_components:
+        for trace in range(len(fig_component["data"])):
+            fig.append_trace(fig_component["data"][trace], row=1, col=1)
     fig.update_layout(
             title_text=f'{prefecture}の累計陽性数推移', title_x=0.5, 
             margin={"r": 0, "t": 40, "l": 0, "b": 0}, height=300)
