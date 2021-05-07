@@ -72,6 +72,7 @@ app.layout = html.Div([
 def update_selectdate_disabled(toggle_cumulative):
     return toggle_cumulative
 
+
 @app.callback(
     Output('japanmap', 'figure'),
     [Input('selectdate', 'date'),
@@ -90,22 +91,32 @@ def update_japanmap(selected_date, toggle_cumulative):
                                opacity=0.5,
                                labels={"value": "人数"}
                                )
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0}, height=600)
+    fig.update_layout(
+            margin={"r": 0, "t": 0, "l": 0, "b": 0}, height=600)
     return fig
 
 
 @app.callback(
     Output('prefecture_npatients_transition', 'figure'),
-    [Input('japanmap', 'clickData')])
-def draw_prefecture_npatients_transition_graph(clickData):
-    if clickData is None:
-        return dash.no_update
-    prefecture = clickData['points'][0]['location']
+    [Input('japanmap', 'clickData'),
+    Input('prefecture_npatients_ranking', 'clickData')])
+def draw_prefecture_npatients_transition_graph(clickData_map, clickData_bar):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        prefecture = clickData_map['points'][0]['location']
+    else:
+        trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        if trigger_id == 'japanmap':
+            prefecture = ctx.triggered[0]['value']['points'][0]['location']
+        elif trigger_id == 'prefecture_npatients_ranking':
+            prefecture = ctx.triggered[0]['value']['points'][0]['label']
     selectdf = df[df['name_jp'] == prefecture]
     fig = px.bar(selectdf, x="date", y="npatients")
-    fig.update_layout(title_text=f'{prefecture}の累計陽性数推移', title_x=0.5, 
-                    margin={"r": 0, "t": 40, "l": 0, "b": 0}, height=300)
+    fig.update_layout(
+            title_text=f'{prefecture}の累計陽性数推移', title_x=0.5, 
+            margin={"r": 0, "t": 40, "l": 0, "b": 0}, height=300)
     return fig
+
 
 @app.callback(
     Output('prefecture_npatients_ranking', 'figure'),
