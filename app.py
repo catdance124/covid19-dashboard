@@ -27,15 +27,15 @@ app.layout = html.Div([
                 daq.ToggleSwitch(
                     id='toggle-switch',
                     value=False,
-                    label=f'{df["date"].unique()[0]}時点の累計陽性者数を表示',
+                    label=f'{df["date"].unique()[-1]}時点の累計陽性者数を表示',
                     labelPosition='left'
                 ),
                 dcc.DatePickerSingle(
                     id='selectdate',
-                    min_date_allowed=datetime.datetime.strptime(df['date'].unique()[-1], '%Y-%m-%d'),
-                    max_date_allowed=datetime.datetime.strptime(df['date'].unique()[0], '%Y-%m-%d'),
-                    initial_visible_month=datetime.datetime.strptime(df['date'].unique()[0], '%Y-%m-%d'),
-                    date=df['date'].unique()[0],
+                    min_date_allowed=datetime.datetime.strptime(df['date'].unique()[0], '%Y-%m-%d'),
+                    max_date_allowed=datetime.datetime.strptime(df['date'].unique()[-1], '%Y-%m-%d'),
+                    initial_visible_month=datetime.datetime.strptime(df['date'].unique()[-1], '%Y-%m-%d'),
+                    date=df['date'].unique()[-1],
                     display_format='Y/M/D',
                     disabled=True
                 ),
@@ -148,7 +148,7 @@ def draw_prefecture_npatients_ranking_graph(selected_date, toggle_cumulative):
     
     fig.update_xaxes(range=[0, selectdf[column_name].max()])
     fig.update_layout(
-            title_text=f'{df["date"].unique()[0]}時点の累計陽性患者数' if toggle_cumulative else f'{selected_date}の陽性患者数', 
+            title_text=f'{df["date"].unique()[-1]}時点の累計陽性患者数' if toggle_cumulative else f'{selected_date}の陽性患者数', 
             title_x=0.5,
             margin={"r": 0, "t": 100, "l": 0, "b": 0}, height=400,
             uniformtext_minsize=12)

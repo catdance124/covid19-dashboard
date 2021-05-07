@@ -11,12 +11,12 @@ def get_covid19_npatients():
     df = pd.DataFrame(response.json()['itemList'])
     ## edit
     df['npatients'] = df['npatients'].astype(int)
-    df.sort_values(['name_jp', 'date'], ascending=[True, False], inplace=True)
+    df.sort_values(['name_jp', 'date'], inplace=True)
     df.loc[df["npatients"] > df["npatients"].quantile(0.9999999), ['npatients']] = np.nan
     df["npatients"].interpolate(inplace=True)
     ## calc npatients per day
     for name in df['name_jp'].unique():
-        df.loc[df['name_jp']==name, ['npatients_today']] = df[df['name_jp']==name]['npatients'].diff(-1)
+        df.loc[df['name_jp']==name, ['npatients_today']] = df[df['name_jp']==name]['npatients'].diff(1)
     df = df.dropna()
     return df
 
