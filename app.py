@@ -125,27 +125,23 @@ def draw_prefecture_npatients_transition_graph(clickData_map, clickData_bar):
 def draw_prefecture_npatients_ranking_graph(selected_date, toggle_cumulative):
     column_name = 'npatients' if toggle_cumulative else 'npatients_today'
     selectdf = df[df['date'] == selected_date].sort_values(column_name)
-    figure1= px.bar(selectdf[-10:], x=column_name, y="name_jp", barmode="overlay", 
-                text=column_name, color=column_name, orientation='h')
-    figure2= px.bar(selectdf[-20:-10], x=column_name, y="name_jp", barmode="overlay", 
-                text=column_name, color=column_name, orientation='h')
-
-    # for subplots
-    figure1_traces = []
-    figure2_traces = []
-    for trace in range(len(figure1["data"])):
-        figure1_traces.append(figure1["data"][trace])
-    for trace in range(len(figure2["data"])):
-        figure2_traces.append(figure2["data"][trace])
-
-    #Create a 1x2 subplot
-    fig = make_subplots(rows=1, cols=2)
-
-    for traces in figure1_traces:
-        fig.append_trace(traces, row=1, col=1)
-    for traces in figure2_traces:
-        fig.append_trace(traces, row=1, col=2)
     
+    # figure components
+    fig_components = []
+    fig_components.append(
+        px.bar(selectdf[-10:], x=column_name, y="name_jp", barmode="overlay", 
+                text=column_name, color=column_name, orientation='h')
+    )
+    fig_components.append(
+        px.bar(selectdf[-20:-10], x=column_name, y="name_jp", barmode="overlay", 
+                text=column_name, color=column_name, orientation='h')
+    )
+
+    # trace whole figure
+    fig = make_subplots(rows=1, cols=2)
+    for i, fig_component in enumerate(fig_components):
+        for trace in range(len(fig_component["data"])):
+            fig.append_trace(fig_component["data"][trace], row=1, col=i+1)
     fig.update_xaxes(range=[0, selectdf[column_name].max()])
     fig.update_layout(
             title_text=f'{df["date"].unique()[-1]}時点の累計陽性患者数' if toggle_cumulative else f'{selected_date}の陽性患者数', 
