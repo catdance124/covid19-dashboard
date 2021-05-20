@@ -17,6 +17,7 @@ def get_covid19_npatients():
     ## calc npatients per day
     for name in df['name_jp'].unique():
         df.loc[df['name_jp']==name, ['npatients_today']] = df[df['name_jp']==name]['npatients'].diff(1)
+    df.loc[df['npatients_today'] < 0, 'npatients_today'] = 0
     df = df.dropna()
     return df
 

@@ -112,10 +112,10 @@ def draw_prefecture_npatients_transition_graph(clickData_map, clickData_bar):
             prefecture = ctx.triggered[0]['value']['points'][0]['location']
         elif trigger_id == 'prefecture_npatients_ranking':
             prefecture = ctx.triggered[0]['value']['points'][0]['label']
-    df['date'] = pd.to_datetime(df['date'])
     selectdf = df[df['name_jp'] == prefecture]
+    print(selectdf)
     # generate a regression line
-    selectdf['date_int'] = selectdf['date'].astype('int64') // 10**9
+    selectdf['date_int'] = pd.to_datetime(selectdf['date']).astype('int64') // 10**9
     help_fig = px.scatter(selectdf, x='date_int', y='npatients', trendline="lowess")
     selectdf['trend'] = help_fig["data"][1]['y']
 
