@@ -1,4 +1,4 @@
-import os, datetime
+import datetime
 import pandas as pd
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -16,55 +16,73 @@ geojson = get_geojson()
 df_ndeaths = get_covid19_ndeaths()
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+# title
+app.title = 'COVID-19 Dashboard'
 server = app.server
-app.layout = html.Div([
-    html.Div(
-        html.H1('COVID-19 Dashboard',
-                style={'textAlign': 'center'})
-    ),
-    dbc.Row([
-        dbc.Col(
-            html.Div([
-                daq.ToggleSwitch(
-                    id='toggle-switch',
-                    value=False,
-                    label=f'{df["date"].unique()[-1]}時点の累計陽性者数を表示',
-                    labelPosition='left'
-                ),
-                dcc.DatePickerSingle(
-                    id='selectdate',
-                    min_date_allowed=datetime.datetime.strptime(df['date'].unique()[0], '%Y-%m-%d'),
-                    max_date_allowed=datetime.datetime.strptime(df['date'].unique()[-1], '%Y-%m-%d'),
-                    initial_visible_month=datetime.datetime.strptime(df['date'].unique()[-1], '%Y-%m-%d'),
-                    date=df['date'].unique()[-1],
-                    display_format='Y/M/D',
-                    disabled=True
-                ),
-                dcc.Loading(
-                    dcc.Graph(id='japanmap',
-                            clickData={'points': [{'curveNumber': 0, 'pointNumber': 12, 'pointIndex': 12, 'location': '東京都', 'z': 729}]}
+
+background_color = '#EEFFFF'
+
+ndeaths_transition_graph = px.bar(df_ndeaths, x="date", y="value", color="variable", barmode="overlay", log_y=True)
+ndeaths_transition_graph.update_layout(
+    paper_bgcolor=background_color
+)
+
+app.layout = html.Div(
+    children=[
+        html.Div(
+            html.H1('COVID-19 Dashboard', style={'textAlign': 'center'})
+        ),
+        dbc.Row([
+            dbc.Col(
+                html.Div([
+                    daq.ToggleSwitch(
+                        id='toggle-switch',
+                        value=False,
+                        label=f'{df["date"].unique()[-1]}時点の累計陽性者数を表示',
+                        labelPosition='left'
                     ),
-                    type="graph"
-                )
-            ]), md=5
+                    dcc.DatePickerSingle(
+                        id='selectdate',
+                        min_date_allowed=datetime.datetime.strptime(df['date'].unique()[0], '%Y-%m-%d'),
+                        max_date_allowed=datetime.datetime.strptime(df['date'].unique()[-1], '%Y-%m-%d'),
+                        initial_visible_month=datetime.datetime.strptime(df['date'].unique()[-1], '%Y-%m-%d'),
+                        date=df['date'].unique()[-1],
+                        display_format='Y/M/D',
+                        disabled=True
+                    ),
+                    dcc.Loading(
+                        dcc.Graph(id='japanmap',
+                                clickData={'points': [{'curveNumber': 0, 'pointNumber': 12, 'pointIndex': 12, 'location': '東京都', 'z': 729}]}
+                        ),
+                        type="graph"
+                    )
+                ]), md=5
+            ),
+            dbc.Col(
+                html.Div([
+                    dcc.Loading(
+                        dcc.Graph(id='prefecture_npatients_transition'),
+                        type="graph"
+                    ), 
+                    dcc.Loading(
+                        dcc.Graph(id='prefecture_npatients_ranking'),
+                        type="graph"
+                    ),
+                ]), md=7
+            ),
+        ]),
+        dcc.Graph(id='ndeaths_transition',
+            figure=ndeaths_transition_graph
         ),
-        dbc.Col(
-            html.Div([
-                dcc.Loading(
-                    dcc.Graph(id='prefecture_npatients_transition'),
-                    type="graph"
-                ), 
-                dcc.Loading(
-                    dcc.Graph(id='prefecture_npatients_ranking'),
-                    type="graph"
-                ),
-            ]), md=7
+        html.Div(['データソースは', dcc.Link('こちら', href='https://corona.go.jp/dashboard/')],
+            style={'padding':'20px 0px 0px 0px', 'font-size':'11pt', 'textAlign': 'center'}
         ),
-    ]),
-    dcc.Graph(id='ndeaths_transition',
-        figure=px.bar(df_ndeaths, x="date", y="value", color="variable", barmode="overlay", log_y=True)
-    )
-])
+        html.Div(['© 2021 ', dcc.Link('kinosi', href='https://github.com/catdance124')],
+            style={'padding':'20px 0px 0px 0px', 'font-size':'9pt', 'textAlign': 'center'}
+        )
+    ],
+    style={'height':'100%', 'margin':'0', 'padding':'0', 'text-align': 'center', 'background-color':background_color}
+)
 
 
 @app.callback(
@@ -93,7 +111,7 @@ def update_japanmap(selected_date, toggle_cumulative):
                                labels={"value": "人数"}
                                )
     fig.update_layout(
-            margin={"r": 0, "t": 0, "l": 0, "b": 0}, height=600)
+            margin={"r": 0, "t": 0, "l": 0, "b": 0}, height=600, paper_bgcolor=background_color)
     return fig
 
 
@@ -134,7 +152,8 @@ def draw_prefecture_npatients_transition_graph(clickData_map, clickData_bar):
             fig.append_trace(fig_component["data"][trace], row=1, col=1)
     fig.update_layout(
             title_text=f'{prefecture}の累計陽性数推移', title_x=0.5, 
-            margin={"r": 0, "t": 40, "l": 0, "b": 0}, height=300)
+            margin={"r": 0, "t": 40, "l": 0, "b": 0}, height=300, 
+            paper_bgcolor=background_color)
     return fig
 
 
@@ -167,9 +186,10 @@ def draw_prefecture_npatients_ranking_graph(selected_date, toggle_cumulative):
             title_text=f'{df["date"].unique()[-1]}時点の累計陽性患者数' if toggle_cumulative else f'{selected_date}の陽性患者数', 
             title_x=0.5,
             margin={"r": 0, "t": 100, "l": 0, "b": 0}, height=400,
-            uniformtext_minsize=12)
+            uniformtext_minsize=12,
+            paper_bgcolor=background_color)
     return fig
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
