@@ -4,8 +4,8 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import dash
 import dash_daq as daq
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 from func import get_covid19_npatients, get_geojson, get_covid19_ndeaths
@@ -112,8 +112,7 @@ def draw_prefecture_npatients_transition_graph(clickData_map, clickData_bar):
             prefecture = ctx.triggered[0]['value']['points'][0]['location']
         elif trigger_id == 'prefecture_npatients_ranking':
             prefecture = ctx.triggered[0]['value']['points'][0]['label']
-    selectdf = df[df['name_jp'] == prefecture]
-    print(selectdf)
+    selectdf = df[df['name_jp'] == prefecture].copy()
     # generate a regression line
     selectdf['date_int'] = pd.to_datetime(selectdf['date']).astype('int64') // 10**9
     help_fig = px.scatter(selectdf, x='date_int', y='npatients', trendline="lowess")
