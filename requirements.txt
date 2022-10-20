@@ -12,7 +12,7 @@ dash-core-components==2.0.0
 dash-daq==0.5.0
 dash-html-components==2.0.0
 dash-table==5.0.0
-dataclasses==0.8
+dataclasses
 Fiona==1.8.21
 Flask==2.0.3
 Flask-Compress==1.13
