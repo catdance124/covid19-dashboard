@@ -74,10 +74,10 @@ app.layout = html.Div(
         dcc.Graph(id='ndeaths_transition',
             figure=ndeaths_transition_graph
         ),
-        html.Div(['データソースは', dcc.Link('こちら', href='https://corona.go.jp/dashboard/')],
+        html.Div(['データソースは', html.A('こちら', href='https://corona.go.jp/dashboard/', target="_blank")],
             style={'padding':'20px 0px 0px 0px', 'font-size':'11pt', 'textAlign': 'center'}
         ),
-        html.Div(['© 2021 ', dcc.Link('kinosi', href='https://github.com/catdance124')],
+        html.Div(['© 2021 ', html.A('kinosi', href='https://github.com/catdance124', target="_blank")],
             style={'padding':'20px 0px 0px 0px', 'font-size':'9pt', 'textAlign': 'center'}
         )
     ],
@@ -192,4 +192,4 @@ def draw_prefecture_npatients_ranking_graph(selected_date, toggle_cumulative):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(host='0.0.0.0', debug=False)
